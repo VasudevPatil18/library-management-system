@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "429178036060",
+    "project_id": "libraryapp-efee6",
+    "storage_bucket": "libraryapp-efee6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:429178036060:android:0c9b2ff167a85e8c46ab99",
+        "android_client_info": {
+          "package_name": "com.example.lib"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-jUO0MyaADVMdl_17gvXNBQ8waD-v2no"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
