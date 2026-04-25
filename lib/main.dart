@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart'; // Add kiya
-import 'firebase_options.dart'; // CLI ne ye file banayi hogi
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/book_provider.dart';
@@ -8,15 +6,9 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/main_wrapper.dart';
 import 'screens/user_view_screen.dart';
+
 void main() async {
-  // 1. Flutter binding initialize karein
   WidgetsFlutterBinding.ensureInitialized();
-
-  // 2. Firebase Initialize karein (Requirement for Firebase)
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
   runApp(const LibraryApp());
 }
 
@@ -32,29 +24,61 @@ class LibraryApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Library Management',
-        
-        // Professional Theme
+        title: 'Librar-X',
         theme: ThemeData(
           useMaterial3: true,
+          fontFamily: 'Roboto',
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.indigo,
-            primary: const Color(0xFF3F51B5),
-            secondary: const Color(0xFF03A9F4),
-            surface: const Color(0xFFF8F9FA), 
+            seedColor: const Color(0xFF6C63FF),
+            primary: const Color(0xFF6C63FF),
+            secondary: const Color(0xFF03DAC6),
+            surface: const Color(0xFFF5F5F5),
+            brightness: Brightness.light,
           ),
-          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+          scaffoldBackgroundColor: const Color(0xFFF0F2F5),
           cardTheme: CardThemeData(
             elevation: 0,
             color: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.grey.shade200),
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: const Color(0xFFF5F5F5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C63FF),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 0.5),
             ),
           ),
         ),
-
-        // Named Routes Configuration
         initialRoute: '/',
         routes: {
           '/': (context) => const LoginScreen(),

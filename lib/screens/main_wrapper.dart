@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import 'dashboard/inventory_screen.dart';
 
 class MainWrapper extends StatefulWidget {
@@ -9,72 +11,143 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
-  final List<Widget> _screens = [
-   
-    const InventoryScreen(),
-   
-  ];
+  final List<Widget> _screens = [const InventoryScreen()];
 
   @override
   Widget build(BuildContext context) {
-    bool isDesktop = MediaQuery.of(context).size.width > 900;
+    final isDesktop = MediaQuery.of(context).size.width > 900;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFFF0F2F5),
       body: Row(
         children: [
-          if (isDesktop) 
-            _buildSidebar(), // Professional Side Drawer for Desktop
+          if (isDesktop) _buildSidebar(),
           Expanded(child: _screens[_selectedIndex]),
         ],
       ),
-      bottomNavigationBar: !isDesktop ? BottomNavigationBar(
+      bottomNavigationBar: !isDesktop ? _buildBottomNav() : null,
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 20, offset: const Offset(0, -4))],
+      ),
+      child: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (i) => setState(() => _selectedIndex = i),
-        selectedItemColor: Colors.indigo,
+        selectedItemColor: const Color(0xFF6C63FF),
         unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), label: "Stock"),
+          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), activeIcon: Icon(Icons.inventory_2_rounded), label: "Inventory"),
         ],
-      ) : null,
+      ),
     );
   }
 
   Widget _buildSidebar() {
     return Container(
       width: 260,
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(4, 0))],
+      ),
       child: Column(
         children: [
-          const ListTile(
-            leading: Icon(Icons.library_books, color: Colors.indigo, size: 32),
-            title: Text("Librar-X", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          // Brand header
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFF6C63FF), Color(0xFF3B37C8)]),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 22),
+                ),
+                const SizedBox(width: 12),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Librar-X', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E))),
+                    Text('Admin Panel', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 40),
-          _sidebarItem(1, "Inventory", Icons.inventory_2_rounded),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Divider(height: 1),
+          ),
+          const SizedBox(height: 16),
+
+          // Nav label
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('MENU', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade400, letterSpacing: 1.2)),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          _sidebarItem(0, "Inventory", Icons.inventory_2_outlined, Icons.inventory_2_rounded),
+
           const Spacer(),
-          const Divider(),
-          _sidebarItem(99, "Logout", Icons.logout, color: Colors.red),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Divider(height: 1),
+          ),
+          const SizedBox(height: 8),
+
+          // Logout
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+            child: ListTile(
+              onTap: () => Navigator.pushReplacementNamed(context, '/'),
+              leading: const Icon(Icons.logout_rounded, color: Colors.red, size: 20),
+              title: const Text('Logout', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600, fontSize: 14)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              hoverColor: Colors.red.withOpacity(0.05),
+              dense: true,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _sidebarItem(int index, String title, IconData icon, {Color? color}) {
-    bool isSelected = _selectedIndex == index;
+  Widget _sidebarItem(int index, String title, IconData icon, IconData activeIcon) {
+    final isSelected = _selectedIndex == index;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: ListTile(
-        onTap: () {
-          if (index == 99) Navigator.pushReplacementNamed(context, '/');
-          else setState(() => _selectedIndex = index);
-        },
+        onTap: () => setState(() => _selectedIndex = index),
         selected: isSelected,
-        leading: Icon(icon, color: isSelected ? Colors.indigo : (color ?? Colors.grey[600])),
-        title: Text(title, style: TextStyle(color: isSelected ? Colors.indigo : (color ?? Colors.grey[800]), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+        leading: Icon(isSelected ? activeIcon : icon, color: isSelected ? const Color(0xFF6C63FF) : Colors.grey.shade500, size: 20),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? const Color(0xFF6C63FF) : Colors.grey.shade700,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+            fontSize: 14,
+          ),
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tileColor: isSelected ? Colors.indigo.withOpacity(0.08) : Colors.transparent,
+        tileColor: isSelected ? const Color(0xFF6C63FF).withOpacity(0.08) : Colors.transparent,
+        selectedTileColor: const Color(0xFF6C63FF).withOpacity(0.08),
+        dense: true,
       ),
     );
   }
