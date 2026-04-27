@@ -16,11 +16,20 @@ class Book {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id, 'title': title, 'author': author, 'isbn': isbn, 'quantity': quantity, 'isIssued': isIssued,
+    'id': id,
+    'title': title,
+    'author': author,
+    'isbn': isbn,
+    'quantity': quantity,
+    'isIssued': isIssued,
   };
 
   factory Book.fromJson(Map<String, dynamic> json) => Book(
-    id: json['id'], title: json['title'], author: json['author'],
-    isbn: json['isbn'], quantity: json['quantity'], isIssued: json['isIssued'],
+    id: json['id'] ?? '',
+    title: json['title'] ?? '',
+    author: json['author'] ?? '',
+    isbn: json['isbn'] ?? '',
+    quantity: json['quantity'] ?? 0,
+    isIssued: json['isIssued'] ?? false,
   );
 }

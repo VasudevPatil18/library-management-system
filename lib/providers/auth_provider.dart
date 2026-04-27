@@ -4,84 +4,102 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider with ChangeNotifier {
+  static const _usersKey = 'local_users';
+  static const _sessionKey = 'session_email';
+
   String? _userName;
-  String? _currentEmail;
+  String? _role;
+  String? _email;
 
   String? get userName => _userName;
-  String? get currentEmail => _currentEmail;
+  String? get role => _role;
+  String? get email => _email;
+  bool get isLoggedIn => _email != null;
+  bool get isAdmin => _role == 'admin';
 
-  // Hash password for secure storage
+  AuthProvider() {
+    _restoreSession();
+  }
+
   String _hashPassword(String password) {
     return sha256.convert(utf8.encode(password)).toString();
   }
 
-  // Register new user
-  Future<void> register(String name, String email, String password) async {
+  /// Load all users from SharedPreferences.
+  Future<List<Map<String, dynamic>>> _loadUsers() async {
     final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_usersKey);
+    if (raw == null) return [];
+    return List<Map<String, dynamic>>.from(jsonDecode(raw));
+  }
 
-    // Check if email already exists
-    final usersJson = prefs.getString('users') ?? '{}';
-    final Map<String, dynamic> users = jsonDecode(usersJson);
+  /// Save users list back to SharedPreferences.
+  Future<void> _saveUsers(List<Map<String, dynamic>> users) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_usersKey, jsonEncode(users));
+  }
 
-    if (users.containsKey(email)) {
-      throw Exception('Email already registered');
+  /// Restore session on app start.
+  Future<void> _restoreSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString(_sessionKey);
+    if (savedEmail != null) {
+      final users = await _loadUsers();
+      final match = users.firstWhere(
+        (u) => u['email'] == savedEmail,
+        orElse: () => {},
+      );
+      if (match.isNotEmpty) {
+        _email = match['email'];
+        _userName = match['name'];
+        _role = match['role'];
+        notifyListeners();
+      }
     }
+  }
 
-    users[email] = {
+  /// Register a new user locally.
+  Future<void> register(String name, String email, String password, {String role = 'user'}) async {
+    final users = await _loadUsers();
+    final exists = users.any((u) => u['email'] == email);
+    if (exists) throw Exception('An account with this email already exists.');
+
+    users.add({
       'name': name,
       'email': email,
       'password': _hashPassword(password),
-    };
-
-    await prefs.setString('users', jsonEncode(users));
-    _userName = name;
-    _currentEmail = email;
-    notifyListeners();
+      'role': role,
+    });
+    await _saveUsers(users);
   }
 
-  // Login user
-  Future<void> login(String email, String password) async {
+  /// Login locally and return the user's role.
+  Future<String> login(String email, String password) async {
+    final users = await _loadUsers();
+    final match = users.firstWhere(
+      (u) => u['email'] == email && u['password'] == _hashPassword(password),
+      orElse: () => {},
+    );
+    if (match.isEmpty) throw Exception('Invalid email or password.');
+
+    _email = match['email'];
+    _userName = match['name'];
+    _role = match['role'];
+
     final prefs = await SharedPreferences.getInstance();
-    final usersJson = prefs.getString('users') ?? '{}';
-    final Map<String, dynamic> users = jsonDecode(usersJson);
+    await prefs.setString(_sessionKey, email);
 
-    if (!users.containsKey(email)) {
-      throw Exception('No account found with this email');
-    }
-
-    final user = users[email];
-    if (user['password'] != _hashPassword(password)) {
-      throw Exception('Incorrect password');
-    }
-
-    _userName = user['name'];
-    _currentEmail = email;
-    await prefs.setString('current_user', email);
     notifyListeners();
+    return _role!;
   }
 
-  // Logout
+  /// Logout and clear session.
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('current_user');
+    await prefs.remove(_sessionKey);
+    _email = null;
     _userName = null;
-    _currentEmail = null;
+    _role = null;
     notifyListeners();
-  }
-
-  // Auto-login on app start
-  Future<bool> tryAutoLogin() async {
-    final prefs = await SharedPreferences.getInstance();
-    final email = prefs.getString('current_user');
-    if (email == null) return false;
-
-    final usersJson = prefs.getString('users') ?? '{}';
-    final Map<String, dynamic> users = jsonDecode(usersJson);
-    if (!users.containsKey(email)) return false;
-
-    _userName = users[email]['name'];
-    _currentEmail = email;
-    notifyListeners();
-    return true;
   }
 }
